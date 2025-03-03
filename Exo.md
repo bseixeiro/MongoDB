@@ -118,3 +118,14 @@ db.ecommerce_produits
 
 ### Exercice 1
 
+1.
+
+```js
+db.livres.find({ disponible: true });
+```
+
+2.
+
+```js
+db.livres.find({ annee_publication: { $gt: 1950 } });
+```
