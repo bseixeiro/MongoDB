@@ -256,3 +256,111 @@ db.livres.updateOne(
 
 ### Partie 4
 
+1.
+
+```js
+db.livres.deleteOne({ titre: "L'avare" });
+```
+
+2.
+
+```js
+db.livres.deleteMany({ auteur: "Karl Marx" });
+```
+
+3.
+
+```js
+db.utilisateurs.deleteOne({ email: "Charles.leclerc@example.com" });
+```
+
+### Partie 5
+
+1.
+
+```js
+db.livres.find().sort({ note_moyenne: -1 });
+```
+
+2.
+
+```js
+db.livres.find().sort({ annee_publication: 1 }).limit(3);
+```
+
+3.
+
+```js
+db.livres.find({ auteur: "Victor Hugo" }).count();
+```
+
+4.
+
+```js
+db.livres.find({}, { _id: 0, titre: 1, auteur: 1, note_moyenne: 1 });
+```
+
+5.
+
+```js
+db.utilisateurs.find({ $expr: { $gt: [{ $size: "$livres_empruntes" }, 1] } });
+```
+
+6.
+
+```js
+db.livres.find({ titre: { $regex: /^Le/ } });
+```
+
+7.
+
+```js
+db.livres.find({
+  prix: { $gte: 10, $lte: 20 },
+});
+```
+
+## Partie 6
+
+### 6.1 Modèle embarqué vs référence
+
+1. Créez une nouvelle collection `emprunts` qui utilise des références vers les livres et les utilisateurs
+2. Insérez au moins 3 emprunts dans cette collection
+3. Comparez cette approche avec celle où les emprunts sont directement intégrés dans le document utilisateur
+
+Modèle pour la collection `emprunts` :
+
+```js
+{
+  utilisateur_id: ObjectId("..."),
+  livre_id: ObjectId("..."),
+  date_emprunt: new Date("2023-02-20"),
+  date_retour_prevue: new Date("2023-03-20"),
+  date_retour_effective: null,
+  statut: "en cours" // en cours, retourné, en retard
+}
+```
+
+### 6.2 Réflexion sur la modélisation
+
+Répondez aux questions suivantes :
+
+1. Quels sont les avantages et inconvénients de chaque approche ?
+
+#### Tableau Comparatif
+
+| Critère                    | Collection `emprunts` séparée                          | Emprunts intégrés dans `utilisateurs`                     |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------- |
+| **Facilité de requêtage**  | Facile pour chercher un emprunt spécifique             | Facile pour récupérer tous les emprunts d'un utilisateur  |
+| **Mises à jour**           | Faciles et indépendantes                               | Complexes (besoin de `$set` et `$elemMatch`)              |
+| **Scalabilité**            | Meilleure gestion des grands volumes                   | Peut devenir trop volumineux                              |
+| **Suppression**            | Nécessite de supprimer les emprunts séparément         | Suppression automatique avec l’utilisateur                |
+| **Performance en lecture** | Requiert `$lookup` pour joindre utilisateurs et livres | Plus rapide pour récupérer un utilisateur et ses emprunts |
+
+2. Quelle approche privilégieriez-vous pour une application réelle et pourquoi ?
+
+L'utilisation de la collection emprunts sera privilégier dans le cas d'une application qui gère beaucoup d’emprunts (bibliothèque réelle avec milliers d’emprunts). Une meilleure scalabilité et des requêtes plus efficaces semble donc la meilleurs approche.
+
+3. Comment modéliseriez-vous les cas où un même livre peut exister en plusieurs exemplaires ?
+
+Il est possible d'utiliser la même approche qu'avec les emprunts, et de renseigné tout les exemplaire avec l'id du livre dans une nouvelle collection. Cela apporterai les même avantages : une meilleur scalabilité, et des mise à jour plus faciles.
